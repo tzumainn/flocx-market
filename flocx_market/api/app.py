@@ -1,8 +1,12 @@
-import os
 from flask import Flask
+from flask_restful import Api
+from flocx_market.api.offer import Offer
 from flask import Blueprint
 from flask import jsonify
 import flocx_market.conf
+from oslo_config import cfg
+
+
 CONF = flocx_market.conf.CONF
 flocx_market_api_bp = Blueprint("flocx_market_api_bp", __name__)
 
@@ -21,5 +25,9 @@ def index():
 
 def create_app(app_name):
     app = Flask(app_name)
-    app.register_blueprint(flocx_market_api_bp)
+    app.config['SQLALCHEMY_DATABASE_URI'] = CONF.database.connection
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = CONF.flask.SQLALCHEMY_TRACK_MODIFICATIONS
+    app.config['PROPAGATE_EXCEPTIONS'] = CONF.flask.PROPAGATE_EXCEPTIONS
+    api = Api(app)
+    api.add_resource(Offer, '/offer', '/offers/<string:marketplace_offer_id>')
     return app

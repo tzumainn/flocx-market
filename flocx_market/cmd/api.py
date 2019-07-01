@@ -11,19 +11,38 @@
 #    under the License.
 import sys
 
-from oslo_service import service
+# from oslo_service import service
 
 from flocx_market.api import service as wsgi_service
 from flocx_market.common import service as flocx_market_service
 import flocx_market.conf
 
+from flocx_market.api import app
+from flask_migrate import Migrate
+from flocx_market.db.orm import orm
+
+
 CONF = flocx_market.conf.CONF
+flocx_market_service.prepare_service(sys.argv)
+
+def create_app():
+    application = app.create_app(app_name='flocx-market')
+    migrate = Migrate(application, orm)
+    return application, migrate
+
 
 
 def main():
-    flocx_market_service.prepare_service(sys.argv)
+    # TODO: make service use wsgi as default server
     # Build and start the WSGI app
-    launcher = service.ProcessLauncher(CONF, restart_method='mutate')
-    server = wsgi_service.WSGIService('flocx_market_api')
-    launcher.launch_service(server, workers=server.workers)
-    launcher.wait()
+    # launcher = service.ProcessLauncher(CONF, restart_method='mutate')
+    # server = wsgi_service.WSGIService('flocx_market_api')
+    # launcher.launch_service(server, workers=server.workers)
+    # launcher.wait()
+    application, migrate = create_app()
+    orm.init_app(application)
+    application.run(port=CONF.api.port, debug=True)
+
+
+if __name__ == '__main__':
+    sys.exit(main())
