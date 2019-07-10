@@ -2,22 +2,24 @@ import flask
 import json
 import pytest
 
+from oslo_config import cfg
+
 import flocx_market.api.app
 import flocx_market.conf
 
 CONF = flocx_market.conf.CONF
 
-CONF.set_override("auth_enable", False,
-                  group='api')
 
 @pytest.fixture
 def test_app():
     CONF.set_override("auth_enable", False,
                       group='api')
+    connection_opt = cfg.StrOpt("connection", None)
+    CONF.register_opt(connection_opt, group="database")
     app = flocx_market.api.app.create_app(app_name="test").test_client()
     app.testing = True
-
-    return app
+    yield app
+    CONF.unregister_opt(connection_opt, group="database")
 
 def test_root_status_code(test_app):
     response = test_app.get("/", follow_redirects=True)

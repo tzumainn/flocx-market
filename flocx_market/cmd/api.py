@@ -23,7 +23,6 @@ from flocx_market.db.orm import orm
 
 
 CONF = flocx_market.conf.CONF
-flocx_market_service.prepare_service(sys.argv)
 
 def create_app():
     application = app.create_app(app_name='flocx-market')
@@ -31,10 +30,8 @@ def create_app():
     return application, migrate
 
 
-
 def main():
-    # TODO: make service use wsgi as default server
-    # Build and start the WSGI app
+    flocx_market_service.prepare_service(sys.argv)
     # launcher = service.ProcessLauncher(CONF, restart_method='mutate')
     # server = wsgi_service.WSGIService('flocx_market_api')
     # launcher.launch_service(server, workers=server.workers)
