@@ -68,3 +68,22 @@ def test_save(offer_update):
     test_offer_1['status'] = "busy"
     o.save(test_offer_1)
     offer_update.assert_called_once()
+
+
+@mock.patch('flocx_market.objects.offer.Offer.expire')
+@mock.patch('flocx_market.objects.offer.db.offer_get_all_to_be_expired')
+def test_update_to_expire(get_all, OfferExpire):
+
+    get_all.return_value = [offer.Offer(), offer.Offer()]
+    offer.Offer.update_to_expire()
+
+    get_all.assert_called_once()
+    assert(OfferExpire.call_count == 2)
+
+
+@mock.patch('flocx_market.objects.offer.db.offer_update')
+def test_expire(offer_update):
+    o = offer.Offer()
+    o.expire()
+
+    offer_update.assert_called_once()

@@ -4,6 +4,7 @@ from oslo_utils import uuidutils
 import flocx_market.conf
 from flocx_market.db.sqlalchemy import models
 
+import datetime
 
 CONF = flocx_market.conf.CONF
 _engine_facade = None
@@ -46,6 +47,13 @@ def offer_get(marketplace_offer_id):
 
 def offer_get_all():
     return get_session().query(models.Offer).all()
+
+
+def offer_get_all_to_be_expired():
+    offers = offer_get_all()
+    now = datetime.datetime.utcnow()
+
+    return [x for x in offers if x.end_time < now and x.status != 'expired']
 
 
 def offer_create(values):

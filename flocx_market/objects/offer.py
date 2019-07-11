@@ -47,3 +47,14 @@ class Offer(base.FLOCXMarketObject):
         cls.status = data['status']
         db.offer_update(cls.marketplace_offer_id, data)
         return cls
+
+    @classmethod
+    def update_to_expire(cls):
+        expired = db.offer_get_all_to_be_expired()
+        for x in expired:
+            x.expire()
+        return len(expired)
+
+    def expire(self):
+        db.offer_update(self.fields['marketplace_offer_id'],
+                        dict(status='expired'))
