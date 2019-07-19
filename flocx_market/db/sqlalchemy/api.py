@@ -49,11 +49,8 @@ def offer_get_all():
     return get_session().query(models.Offer).all()
 
 
-def offer_get_all_to_be_expired():
-    offers = offer_get_all()
-    now = datetime.datetime.utcnow()
-
-    return [x for x in offers if x.end_time < now and x.status != 'expired']
+def offer_get_all_unexpired():
+    return get_session().query(models.Offer).filter(models.Offer.status!='expired').all()
 
 
 def offer_create(values):

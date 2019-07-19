@@ -1,8 +1,11 @@
+from oslo_versionedobjects import base as versioned_objects_base
+
 import flocx_market.db.sqlalchemy.api as db
 from flocx_market.objects import base
 from flocx_market.objects import fields
 
 
+@versioned_objects_base.VersionedObjectRegistry.register
 class Offer(base.FLOCXMarketObject):
 
     fields = {
@@ -43,18 +46,16 @@ class Offer(base.FLOCXMarketObject):
         all_offers = db.offer_get_all()
         return cls._from_db_object_list(all_offers)
 
-    def save(cls, data):
-        cls.status = data['status']
-        db.offer_update(cls.marketplace_offer_id, data)
-        return cls
-
     @classmethod
-    def update_to_expire(cls):
-        expired = db.offer_get_all_to_be_expired()
-        for x in expired:
-            x.expire()
-        return len(expired)
+    def get_all_unexpired(cls):
+        unexpired = db.offer_get_all_unexpired()
+        return cls._from_db_object_list(unexpired)
+
+    def save(self):        
+        updates = self.obj_get_changes()
+        db_offer = db.offer_update(self.marketplace_offer_id, updates)
+        return self._from_db_object(self, db_offer)
 
     def expire(self):
-        db.offer_update(self.fields['marketplace_offer_id'],
-                        dict(status='expired'))
+        self.status = 'expired'
+        self.save()

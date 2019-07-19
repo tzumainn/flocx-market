@@ -1,3 +1,5 @@
+import datetime
+
 from oslo_context import context as ctx
 from oslo_log import log as logging
 from oslo_service import service
@@ -41,6 +43,10 @@ class Manager(periodic_task.PeriodicTasks):
                                  run_immediately=True)
     def update_expired_offers(self, context):
         LOG.info("Checking for expiring offers")
-        modified = Offer.update_to_expire()
-        if modified > 0:
-            LOG.info("Updated " + modified + " offers")
+        now = datetime.datetime.utcnow()
+        unexpired_offers = Offer.get_all_unexpired()
+        for offer in unexpired_offers:
+            if offer.end_time < now:
+                offer.expire()
+        if len(unexpired_offers) > 0:
+            LOG.info("Updated " + str(len(unexpired_offers)) + " offers")
